@@ -1,0 +1,174 @@
+{
+  "id": "users-create",
+  "method": "POST",
+  "path": "/users",
+  "summary": "새 사용자 생성",
+  "description": "이름, 이메일, 비밀번호를 입력받아 새 사용자를 등록합니다. 이메일 중복 시 409를 반환합니다.",
+  "request": {
+    "headers": [
+      {
+        "name": "Content-Type",
+        "type": "string",
+        "required": true,
+        "description": "요청 바디 형식",
+        "example": "application/json"
+      }
+    ],
+    "body": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": "사용자 이름 (2~50자)",
+        "example": "Charlie"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "required": true,
+        "description": "이메일 주소 (유일해야 함)",
+        "example": "charlie@example.com"
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "required": true,
+        "description": "비밀번호 (8자 이상)",
+        "example": "securePass123"
+      },
+      {
+        "name": "role",
+        "type": "string",
+        "required": false,
+        "description": "역할 (admin | user, 기본값: user)",
+        "example": "user"
+      }
+    ]
+  },
+  "responses": [
+    {
+      "status": 201,
+      "description": "사용자 생성 성공",
+      "body": {
+        "id": 3,
+        "name": "Charlie",
+        "email": "charlie@example.com",
+        "role": "user"
+      }
+    },
+    {
+      "status": 409,
+      "description": "이메일 중복",
+      "body": {
+        "error": "Conflict",
+        "message": "이미 사용 중인 이메일입니다."
+      }
+    },
+    {
+      "status": 422,
+      "description": "요청 바디 유효성 검사 실패",
+      "body": {
+        "error": "Unprocessable Entity",
+        "detail": [
+          {
+            "field": "email",
+            "message": "올바른 이메일 형식이 아닙니다."
+          }
+        ]
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "정상: 새 사용자 등록 성공",
+      "description": "유효한 정보로 사용자를 생성하는 정상 시나리오",
+      "steps": [
+        {
+          "actor": "Client",
+          "action": "POST /users 요청 (name, email, password 포함)",
+          "data": {
+            "name": "Charlie",
+            "email": "charlie@example.com",
+            "password": "securePass123"
+          }
+        },
+        {
+          "actor": "API",
+          "action": "요청 바디 유효성 검사 통과"
+        },
+        {
+          "actor": "DB",
+          "action": "이메일 중복 여부 조회"
+        },
+        {
+          "actor": "DB",
+          "action": "중복 없음 확인 후 신규 레코드 삽입"
+        },
+        {
+          "actor": "API",
+          "action": "201 Created + 생성된 사용자 정보 반환"
+        },
+        {
+          "actor": "Client",
+          "action": "응답 수신 (id, name, email, role)"
+        }
+      ]
+    },
+    {
+      "name": "실패: 이미 존재하는 이메일로 가입 시도",
+      "description": "중복 이메일로 가입 시 409 Conflict를 반환하는 시나리오",
+      "steps": [
+        {
+          "actor": "Client",
+          "action": "POST /users 요청",
+          "data": { "email": "alice@example.com" }
+        },
+        {
+          "actor": "API",
+          "action": "요청 바디 유효성 검사 통과"
+        },
+        {
+          "actor": "DB",
+          "action": "이메일 중복 여부 조회"
+        },
+        {
+          "actor": "DB",
+          "action": "동일 이메일 레코드 발견"
+        },
+        {
+          "actor": "API",
+          "action": "409 Conflict 반환",
+          "data": { "message": "이미 사용 중인 이메일입니다." }
+        },
+        {
+          "actor": "Client",
+          "action": "오류 메시지 표시"
+        }
+      ]
+    },
+    {
+      "name": "실패: 잘못된 이메일 형식",
+      "description": "이메일 형식이 맞지 않을 때 422를 반환하는 시나리오",
+      "steps": [
+        {
+          "actor": "Client",
+          "action": "POST /users 요청",
+          "data": { "email": "not-an-email" }
+        },
+        {
+          "actor": "API",
+          "action": "Pydantic 유효성 검사 실패 감지"
+        },
+        {
+          "actor": "API",
+          "action": "422 Unprocessable Entity 반환",
+          "data": { "field": "email", "message": "올바른 이메일 형식이 아닙니다." }
+        },
+        {
+          "actor": "Client",
+          "action": "필드별 오류 메시지 표시"
+        }
+      ]
+    }
+  ]
+}

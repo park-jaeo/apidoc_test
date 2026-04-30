@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 문서 뷰어</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Mermaid: 시퀀스 다이어그램 렌더링 -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>
+    // Mermaid는 테마 변경 시 app.js에서 재초기화하므로 여기선 기본값만 설정
+    mermaid.initialize({ startOnLoad: false, theme: "default" });
+  </script>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- ===== 사이드바 ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title" id="sidebar-title">API 문서</div>
+        <div class="sidebar-version" id="sidebar-version"></div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <!-- index.json 로드 후 app.js가 동적으로 채움 -->
+        <div style="padding:16px;font-size:12px;color:#8b949e;">로딩 중…</div>
+      </nav>
+
+      <div class="theme-toggle">
+        <button id="theme-btn" onclick="toggleTheme()">☾ 다크 모드</button>
+      </div>
+    </aside>
+
+    <!-- ===== 메인 패널 ===== -->
+    <main class="main">
+      <div id="main-content">
+        <!-- 시작 화면 -->
+        <div class="welcome">
+          <h2>API 문서 뷰어</h2>
+          <p>좌측 사이드바에서 엔드포인트를 선택하면<br/>요청/응답 스키마와 시나리오 다이어그램을 확인할 수 있습니다.</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
