@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="style.css" />
 
   <!-- Mermaid: 시퀀스 다이어그램 렌더링 -->
+  <!-- data.js: JSON을 JS 변수로 번들링 (file:// 직접 실행 지원) -->
+  <!-- JSON 수정 후 갱신: python scripts/build_data.py -->
+  <script src="data.js"></script>
+
+  <!-- Mermaid: 시퀀스 다이어그램 렌더링 -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <script>
     // Mermaid는 테마 변경 시 app.js에서 재초기화하므로 여기선 기본값만 설정

@@ -1,8 +1,11 @@
 /* ===================================================
  * API 문서 뷰어 — app.js
- * 역할: index.json 로드 → 사이드바 렌더링 → 엔드포인트 클릭 시
- *       endpoints/*.json 로드 → 요청/응답 스키마 표시 +
- *       Mermaid 시나리오 다이어그램 + cURL 자동 생성
+ *
+ * 데이터 로드 전략 (우선순위):
+ *   1. window.API_DATA (data.js 번들) — file:// 직접 실행 시
+ *   2. fetch() — HTTP 서버로 실행 시 폴백
+ *
+ * data.js 갱신: python scripts/build_data.py
  * =================================================== */
 
 // ───────── 전역 상태 ─────────
@@ -22,13 +25,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ───────── index.json 로드 및 사이드바 렌더링 ─────────
 async function loadIndex() {
   try {
-    const res = await fetch("index.json");
-    if (!res.ok) throw new Error(`index.json 로드 실패: ${res.status}`);
-    apiIndex = await res.json();
+    let index;
+    if (window.API_DATA) {
+      // data.js 번들 모드 (file:// 직접 실행)
+      index = window.API_DATA.index;
+    } else {
+      // HTTP 서버 모드 폴백
+      const res = await fetch("index.json");
+      if (!res.ok) throw new Error(`index.json 로드 실패: ${res.status}`);
+      index = await res.json();
+    }
+    apiIndex = index;
     renderSidebar(apiIndex);
   } catch (e) {
     document.getElementById("sidebar-nav").innerHTML =
-      `<div style="padding:16px;color:#f85149;font-size:12px;">index.json 로드 오류: ${e.message}</div>`;
+      `<div style="padding:16px;color:#f85149;font-size:12px;">로드 오류: ${e.message}</div>`;
   }
 }
 
@@ -68,9 +79,18 @@ async function loadEndpoint(file, id, el) {
   main.innerHTML = `<div class="loading">로딩 중…</div>`;
 
   try {
-    const res = await fetch(file);
-    if (!res.ok) throw new Error(`${file} 로드 실패: ${res.status}`);
-    currentEndpoint = await res.json();
+    let data;
+    if (window.API_DATA) {
+      // data.js 번들 모드 (file:// 직접 실행)
+      data = window.API_DATA.endpoints[file];
+      if (!data) throw new Error(`번들에 없는 엔드포인트: ${file}`);
+    } else {
+      // HTTP 서버 모드 폴백
+      const res = await fetch(file);
+      if (!res.ok) throw new Error(`${file} 로드 실패: ${res.status}`);
+      data = await res.json();
+    }
+    currentEndpoint = data;
     renderEndpoint(currentEndpoint);
   } catch (e) {
     main.innerHTML = `<div class="error-msg">엔드포인트 데이터 로드 오류: ${e.message}</div>`;
